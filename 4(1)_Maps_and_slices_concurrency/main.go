@@ -13,7 +13,7 @@ func main() {
  start := time.Now()
  var wg sync.WaitGroup
  final := make(map[string]int)
- x : = ":"
+ x : = "Provide your string here"
  wg.Add(4)
  ch := make(chan map[string]int, 10)
  work1, work2, work3, work4 := Splitstring4(x)
