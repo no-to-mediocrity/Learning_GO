@@ -6,4 +6,5 @@ Frequency analysis. Write a function that takes text as input and returns how of
 
 ___________________________________________________________________________________________________________________________________
 Функция написана с использованием concurrency. Это дает 6-кратный прирост производительности!
-The function is designed upon Golang concurrency. That gives a 6-fold performance improval! 
+
+The function is designed to use Golang concurrency feature. That gives a 6-fold performance improval! 
