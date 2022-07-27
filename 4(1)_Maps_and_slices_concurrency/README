@@ -1,1 +1,9 @@
+Домашнее задание
+Частотный анализ. Напишите функцию, которая принимает текст в качестве входных данных и возвращает данные о повторяющихся словах.
 
+Homework
+Frequency analysis. Write a function that takes text as input and returns how often the words are in the text.
+
+___________________________________________________________________________________________________________________________________
+Функция написана с использованием concurrency. Это дает 6-кратный прирост производительности!
+The function is designed upon Golang concurrency. That gives a 6-fold performance improval! 
