@@ -1,11 +1,29 @@
+/*
+Домашнее задание
+Копирование файлов
+Цель: Реализовать утилиту копирования файлов Утилита должна принимать следующие аргументы * файл источник (From) * файл копия (To) * Отступ в источнике (Offset), по умолчанию - 0 * Количество копируемых байт (Limit), по умолчанию - весь файл из From Выводить в консоль прогресс копирования в %, например с помощью github.com/cheggaaa/pb Программа может НЕ обрабатывать файлы, у которых не известна длинна (например /dev/urandom).
+Завести в репозитории отдельный пакет (модуль) для этого ДЗ
+Реализовать функцию вида Copy(from string, to string, limit int, offset int) error
+Написать unit-тесты на функцию Copy
+Реализовать функцию main, анализирующую параметры командной строки и вызывающую Copy
+Проверить установку и работу утилиты руками
+Критерии оценки: Функция должна проходить все тесты
+Все необходимые для тестов файлы должны создаваться в самом тесте
+Код должен проходить проверки go vet и golint
+У преподавателя должна быть возможность скачать, проверить и установить пакет с помощью go get / go test / go install
+*/
+
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"github.com/schollz/progressbar"
 	"io"
+	"log"
 	"os"
+	"strings"
 )
 
 var buffersize *int64 // Global variable so we don't have to pass it to function
@@ -19,50 +37,49 @@ func main() {
 	buffersize = flag.Int64("buffersize", 4096, "Buffer size")
 	flag.Parse()
 	if *pathfrom == "" {
-		fmt.Println("Please provide the source file")
+		log.Println("Please provide the source file")
 		return
 	}
 	if *pathto == "" {
-		//сделать функцию адаптивную
-		//fmt.Println("Destination path not provided. Use the path %v"(), *pathfrom)
-		return
+		autopath := "Destination path not provided. Use the path"
+		c := askForConfirmation(autopath)
+		if c {
+			*pathto = autopath
+		} else {
+			return
+		}
 	}
 	if *overwrite == false {
 		file, err := os.Open(*pathto)
+		defer file.Close()
 		if err == nil {
-			fmt.Println("Destination file already exists:", *pathto)
-			file.Close()
+			log.Println("Destination file already exists:", *pathto)
 			return
 		}
 	}
 	file, err := os.Open(*pathfrom)
+	defer file.Close()
 	if err != nil {
-		fmt.Println("Cannot open destination file:", *pathfrom)
+		log.Println("Cannot open destination file:", *pathfrom)
 		return
 	}
 	var fsize int64 // so the compiler won't throw an error
 	if *limit == 0 {
-		fmt.Println("limit = 0", *limit)
 		fi, _ := file.Stat()
 		fsize = fi.Size()
 	} else {
 		fsize = *limit
 	}
-	//fmt.Println(int(fsize) / 4096)
-	file.Close()
 	Filecopy(*pathfrom, *pathto, fsize, *offset)
-
-	//flag overwrite file
-	//add if exist
+	
 }
 
 func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 	// fmt.Println("From:", pathfrom)
 	// fmt.Println("To:", pathto)
 	// fmt.Println("offset", offset)
-	//fmt.Println("limit", limit)
+	// fmt.Println("limit", limit)
 	// fmt.Println("buffersize", *buffersize)
-
 	sourceFileStat, err := os.Stat(pathfrom)
 	if !sourceFileStat.Mode().IsRegular() {
 		return fmt.Errorf("%s is not a regular file", pathfrom)
@@ -93,6 +110,7 @@ func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 			break
 		}
 		if iterations == maxIterations {
+			//Changing the buffer size to trim the file to the limit set by user
 			lastbuffer := limit - (maxIterations * *buffersize)
 			buf = make([]byte, lastbuffer)
 		}
@@ -106,12 +124,15 @@ func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 			}
 		}
 		if offset > 0 && iterations == offsetIterations {
+			//Getting the head of the file according to the user-provided offset
 			pos := offset - offsetIterations**buffersize
 			if _, err := destination.Write(buf[pos:n]); err != nil {
 				return err
 			}
 		}
-		bar.Add(n)
+		if err := bar.Add(n); err != nil {
+			return err
+		}
 		if n == 0 {
 			break
 		}
@@ -120,17 +141,23 @@ func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 	return err
 }
 
-/*
-Домашнее задание
-Копирование файлов
-Цель: Реализовать утилиту копирования файлов Утилита должна принимать следующие аргументы * файл источник (From) * файл копия (To) * Отступ в источнике (Offset), по умолчанию - 0 * Количество копируемых байт (Limit), по умолчанию - весь файл из From Выводить в консоль прогресс копирования в %, например с помощью github.com/cheggaaa/pb Программа может НЕ обрабатывать файлы, у которых не известна длинна (например /dev/urandom).
-Завести в репозитории отдельный пакет (модуль) для этого ДЗ
-Реализовать функцию вида Copy(from string, to string, limit int, offset int) error
-Написать unit-тесты на функцию Copy
-Реализовать функцию main, анализирующую параметры командной строки и вызывающую Copy
-Проверить установку и работу утилиты руками
-Критерии оценки: Функция должна проходить все тесты
-Все необходимые для тестов файлы должны создаваться в самом тесте
-Код должен проходить проверки go vet и golint
-У преподавателя должна быть возможность скачать, проверить и установить пакет с помощью go get / go test / go install
-*/
+func askForConfirmation(s string) bool {
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		fmt.Printf("%s [y/n]: ", s)
+
+		response, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		response = strings.ToLower(strings.TrimSpace(response))
+
+		if response == "y" || response == "yes" {
+			return true
+		} else if response == "n" || response == "no" {
+			return false
+		}
+	}
+}
