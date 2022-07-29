@@ -87,12 +87,8 @@ func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 	bar := progressbar.New(int(limit))
 	maxIterations := limit / *buffersize
 	offsetIterations := offset / *buffersize
-	//fmt.Println(offsetIterations)
-	//file_iterations :=
 	var iterations int64
 	for {
-		//	fmt.Println(iterations, offsetIterations)
-		//	fmt.Println(iterations, max_iterations)
 		if iterations > maxIterations {
 			break
 		}
@@ -101,7 +97,6 @@ func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 			buf = make([]byte, lastbuffer)
 		}
 		n, err := source.Read(buf)
-		//fmt.Println(iterations)
 		if err != nil && err != io.EOF {
 			return err
 		}
