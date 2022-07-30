@@ -19,10 +19,12 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/schollz/progressbar"
+	progressbar "github.com/schollz/progressbar"
 	"io"
 	"log"
 	"os"
+	"path"
+	"strconv"
 	"strings"
 )
 
@@ -40,9 +42,11 @@ func main() {
 		log.Println("Please provide the source file")
 		return
 	}
+	//Path suggestion
 	if *pathto == "" {
-		autopath := "Destination path not provided. Use the path"
-		c := askForConfirmation(autopath)
+		autopath, _ := PathSuggestion(*pathfrom)
+		autopathmsg := "Destination path not provided. Use the path" + autopath + "?"
+		c := askForConfirmation(autopathmsg)
 		if c {
 			*pathto = autopath
 		} else {
@@ -51,35 +55,44 @@ func main() {
 	}
 	if *overwrite == false {
 		file, err := os.Open(*pathto)
-		defer file.Close()
+		defer func(file *os.File) {
+			err := file.Close()
+			if err != nil {
+				log.Println("Error in defer file.Close():", err)
+			}
+		}(file)
 		if err == nil {
 			log.Println("Destination file already exists:", *pathto)
 			return
 		}
 	}
 	file, err := os.Open(*pathfrom)
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			log.Printf("Error in defer file.Close():%v, %p\n", err, file)
+		}
+	}(file)
 	if err != nil {
 		log.Println("Cannot open destination file:", *pathfrom)
 		return
 	}
-	var fsize int64 // so the compiler won't throw an error
+	var fsize int64
 	if *limit == 0 {
 		fi, _ := file.Stat()
 		fsize = fi.Size()
 	} else {
 		fsize = *limit
 	}
-	Filecopy(*pathfrom, *pathto, fsize, *offset)
-	
+	copyerr := Filecopy(*pathfrom, *pathto, fsize, *offset)
+	if copyerr != nil {
+		log.Printf("%v", copyerr)
+		return
+	}
+
 }
 
 func Filecopy(pathfrom, pathto string, limit, offset int64) error {
-	// fmt.Println("From:", pathfrom)
-	// fmt.Println("To:", pathto)
-	// fmt.Println("offset", offset)
-	// fmt.Println("limit", limit)
-	// fmt.Println("buffersize", *buffersize)
 	sourceFileStat, err := os.Stat(pathfrom)
 	if !sourceFileStat.Mode().IsRegular() {
 		return fmt.Errorf("%s is not a regular file", pathfrom)
@@ -160,4 +173,29 @@ func askForConfirmation(s string) bool {
 			return false
 		}
 	}
+}
+
+func PathSuggestion(pathfrom string) (string, error) {
+	dir, file := path.Split(pathfrom)
+	ext := path.Ext(file)
+	file = strings.TrimRight(file, ext)
+	copycount := 2
+	var autopath string
+	for {
+		autopath = dir + file + "(" + strconv.Itoa(copycount) + ")" + ext
+		file, err := os.Open(autopath)
+		defer func(file *os.File) error {
+			err := file.Close()
+			if err != nil {
+				return err
+			}
+			return err
+		}(file)
+		if err == nil {
+			copycount++
+		} else {
+			break
+		}
+	}
+	return autopath, nil
 }
