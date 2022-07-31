@@ -19,7 +19,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	progressbar "github.com/schollz/progressbar"
+	progressbar "github.com/schollz/progressbar/v3"
 	"io"
 	"log"
 	"os"
@@ -114,7 +114,7 @@ func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 		panic(err)
 	}
 	buf := make([]byte, *buffersize)
-	bar := progressbar.New(int(limit))
+	bar := progressbar.NewOptions(int(limit), progressbar.OptionShowBytes(true), progressbar.OptionSetDescription("Copying in progress:"))
 	maxIterations := limit / *buffersize
 	offsetIterations := offset / *buffersize
 	var iterations int64
