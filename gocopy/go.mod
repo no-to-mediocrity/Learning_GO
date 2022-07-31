@@ -1,4 +1,4 @@
-module awesomeProject
+module gocopy
 
 go 1.18
 
