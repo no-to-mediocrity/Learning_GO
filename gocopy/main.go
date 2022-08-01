@@ -106,7 +106,6 @@ func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 	buf := make([]byte, *buffersize)
 	bar := progressbar.NewOptions(int(limit+offset), progressbar.OptionShowBytes(true), progressbar.OptionSetDescription("Copying in progress:"))
 	maxIterations := (offset + limit) / *buffersize
-	//здесь ошибка, файл уедет за оффсет
 	offsetIterations := offset / *buffersize
 	var iterations int64
 	for {
