@@ -40,14 +40,12 @@ func main() {
 	}
 	if *overwrite == false {
 		file, err := os.Open(*pathto)
-		defer func(file *os.File) {
-			err := file.Close()
-			if err != nil {
-				log.Println("Error in defer file.Close():", err)
-			}
-		}(file)
 		if err == nil {
 			log.Println("Destination file already exists:", *pathto)
+			err := file.Close()
+			if err != nil {
+				log.Println("OW: False, Error in file.Close():", err)
+			}
 			return
 		}
 	}
@@ -55,7 +53,7 @@ func main() {
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-			log.Printf("Error in defer file.Close():%v, %p\n", err, file)
+			log.Printf("OW: True, Error in defer file.Close():%v, %p\n", err, file)
 		}
 	}(file)
 	if err != nil {
@@ -65,8 +63,15 @@ func main() {
 	var fsize int64
 	if *limit == 0 {
 		fi, _ := file.Stat()
-		fsize = fi.Size()
+		fsize = fi.Size() - *offset
+		if *offset > fsize {
+			log.Printf("The offset (%v) is greater than the file %v\n (%v)", *offset, *pathfrom, fsize)
+			return
+		}
 	} else {
+		if *offset > *limit {
+			log.Printf("The offset (%v) is greater than limit (%v)\n", *offset, *limit)
+		}
 		fsize = *limit
 	}
 	copyerr := Filecopy(*pathfrom, *pathto, fsize, *offset)
@@ -99,8 +104,9 @@ func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 		panic(err)
 	}
 	buf := make([]byte, *buffersize)
-	bar := progressbar.NewOptions(int(limit), progressbar.OptionShowBytes(true), progressbar.OptionSetDescription("Copying in progress:"))
-	maxIterations := limit / *buffersize
+	bar := progressbar.NewOptions(int(limit+offset), progressbar.OptionShowBytes(true), progressbar.OptionSetDescription("Copying in progress:"))
+	maxIterations := (offset + limit) / *buffersize
+	//здесь ошибка, файл уедет за оффсет
 	offsetIterations := offset / *buffersize
 	var iterations int64
 	for {
@@ -109,7 +115,7 @@ func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 		}
 		if iterations == maxIterations {
 			//Changing the buffer size to trim the file to the limit set by user
-			lastbuffer := limit - (maxIterations * *buffersize)
+			lastbuffer := (offset + limit) - (maxIterations * *buffersize)
 			buf = make([]byte, lastbuffer)
 		}
 		n, err := source.Read(buf)
