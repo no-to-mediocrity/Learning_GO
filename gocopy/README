@@ -1,0 +1,25 @@
+Домашнее задание
+Копирование файлов
+Цель: Реализовать утилиту копирования файлов Утилита должна принимать следующие аргументы * файл источник (From) * файл копия (To) * Отступ в источнике (Offset), по умолчанию - 0 * Количество копируемых байт (Limit), по умолчанию - весь файл из From Выводить в консоль прогресс копирования в %, например с помощью github.com/cheggaaa/pb Программа может НЕ обрабатывать файлы, у которых не известна длинна (например /dev/urandom).
+Завести в репозитории отдельный пакет (модуль) для этого ДЗ
+Реализовать функцию вида Copy(from string, to string, limit int, offset int) error
+Написать unit-тесты на функцию Copy()
+Реализовать функцию main, анализирующую параметры командной строки и вызывающую Copy
+Проверить установку и работу утилиты руками
+Критерии оценки: Функция должна проходить все тесты
+Все необходимые для тестов файлы должны создаваться в самом тесте
+Код должен проходить проверки go vet и golint
+У преподавателя должна быть возможность скачать, проверить и установить пакет с помощью go get / go test / go install
+
+Homework
+Copying files
+Purpose: To implement a file copying utility. The utility should take the follwoing arguments: * source file (From) * copy file (To) * source file offset (Offset), the default is 0 * Number of bytes to copy (Limit), default is the entire file from the file From Output to the console of a sentence in %, for example, using github.com/cheggaaa/pb The program may NOT work files, including those without a length (for example, /dev/urandom).
+Create a separate package (module) for this excersize
+Implement a function Copy(from string, to string, limit int, offset int) error
+Make unit tests for the Copy() function
+Implement a main function that parses command line options and calls
+Check the installation and the fuction of the utility by yourself
+Evaluation criteria: The program must pass all tests
+All files necessary for tests must be created in the test itself.
+Code must pass go vet and golint checks
+The teacher should be able to download, test and install the package using go get / go test / go install
