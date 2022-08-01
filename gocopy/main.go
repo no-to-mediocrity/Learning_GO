@@ -61,16 +61,17 @@ func main() {
 		return
 	}
 	var fsize int64
+	fi, _ := file.Stat()
+	fsize = fi.Size() - *offset
 	if *limit == 0 {
-		fi, _ := file.Stat()
-		fsize = fi.Size() - *offset
 		if *offset > fsize {
 			log.Printf("The offset (%v) is greater than the file size %v\n (%v)", *offset, *pathfrom, fsize)
 			return
 		}
 	} else {
-		if *offset > *limit {
-			log.Printf("The offset (%v) is greater than limit (%v)\n", *offset, *limit)
+		if *limit > fsize{
+			log.Printf("The limit (%v) is greater than the number of bytes to copy %v\n", *limit, fsize)
+			return
 		}
 		fsize = *limit
 	}
