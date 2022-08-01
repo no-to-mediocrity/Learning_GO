@@ -65,7 +65,7 @@ func main() {
 		fi, _ := file.Stat()
 		fsize = fi.Size() - *offset
 		if *offset > fsize {
-			log.Printf("The offset (%v) is greater than the file %v\n (%v)", *offset, *pathfrom, fsize)
+			log.Printf("The offset (%v) is greater than the file size %v\n (%v)", *offset, *pathfrom, fsize)
 			return
 		}
 	} else {
