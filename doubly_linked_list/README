@@ -1,0 +1,27 @@
+Реализовать двусвязанный список на языке Go
+https://en.wikipedia.org/wiki/Doubly_linked_list
+ Ожидаемые типы (псевдокод):
+list // тип контейнер
+Len() // длина списка
+First() // первый
+ItemLast() // последний
+Item PushFront(v interface{}) // добавить значение в начало
+PushBack(v interface{}) // добавить значение в конец
+Remove(i Item) // удалить элемент?
+Item // элемент списка Value() interface{} // возвращает значение 
+Next() *Item // следующий
+Item Prev() *Item // предыдущий 
+
+Implement a doubly linked list in Go
+https://en.wikipedia.org/wiki/Doubly_linked_list
+Expected types (pseudocode):
+list // type container
+Len() // returns the length of the list 
+First() // returns the first item
+ItemLast() // returns the last item
+Item PushFront(v interface{}) // adds item to the front
+PushBack(v interface{}) // add a item to the end
+Remove(i Item) // removes item
+Item // list of elements Value() interface{} // returns all values
+Next() *Item // returns next item
+Item Prev() *Item // returns the previous one
