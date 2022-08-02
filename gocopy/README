@@ -17,7 +17,7 @@ Purpose: To implement a file copying utility. The utility should take the follwo
 Create a separate package (module) for this excersize
 Implement a function Copy(from string, to string, limit int, offset int) error
 Make unit tests for the Copy() function
-Implement a main function that parses command line options and calls
+Implement a main function that parses command line options and calls Copy()
 Check the installation and the fuction of the utility by yourself
 Evaluation criteria: The program must pass all tests
 All files necessary for tests must be created in the test itself.
