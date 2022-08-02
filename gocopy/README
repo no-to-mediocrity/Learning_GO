@@ -13,7 +13,7 @@
 
 Homework
 Copying files
-Purpose: To implement a file copying utility. The utility should take the follwoing arguments: * source file (From) * copy file (To) * source file offset (Offset), the default is 0 * Number of bytes to copy (Limit), default is the entire file from the file From Output to the console of a sentence in %, for example, using github.com/cheggaaa/pb The program may NOT work files, including those without a length (for example, /dev/urandom).
+Purpose: To implement a file copying utility. The utility should take the follwoing arguments: * source file (From) * copy file (To) * source file offset (Offset), the default is 0 * Number of bytes to copy (Limit), default is the entire file from the file From Output to the console of a sentence in %, for example, using github.com/cheggaaa/pb The program may NOT work with files without a length (for example, /dev/urandom).
 Create a separate package (module) for this excersize
 Implement a function Copy(from string, to string, limit int, offset int) error
 Make unit tests for the Copy() function
