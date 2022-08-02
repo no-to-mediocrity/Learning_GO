@@ -88,6 +88,7 @@ func (y *list) Range() {
 
 func (y *list) RemoveEntry(entry *entry) {
 	if y.entries <= 0 {
+		fmt.Println("Empty list!")
 		return
 	}
 	current := y.first
@@ -121,6 +122,38 @@ func (y *list) RemoveEntry(entry *entry) {
 		y.last = entry.prev
 	}
 	return
+}
+
+func (y *list) NextEntry(entry *entry) *entry {
+	if y.entries <= 0 {
+		fmt.Println("Empty list!")
+		return nil
+	}
+	current := y.first
+	for current != nil {
+		if current != entry {
+			current = current.next
+		} else {
+			return current.next
+		}
+	}
+	return nil
+}
+
+func (y *list) PrevEntry(entry *entry) *entry {
+	if y.entries <= 0 {
+		fmt.Println("Empty list!")
+		return nil
+	}
+	current := y.first
+	for current != nil {
+		if current != entry {
+			current = current.next
+		} else {
+			return current.prev
+		}
+	}
+	return nil
 }
 
 func (y *list) GetItems(x string) []*entry {
@@ -162,8 +195,16 @@ func main() {
 	fmt.Println("Ranging list")
 	y.Range()
 	fmt.Println("Get items:test:", y.GetItems("test"))
-	fmt.Println("Removing items:test")
 	t := y.GetItems("test")
+	fmt.Println("Next item:test")
+	for _, v := range t {
+		fmt.Println(y.NextEntry(v))
+	}
+	fmt.Println("Previous item:test")
+	for _, v := range t {
+		fmt.Println(y.PrevEntry(v))
+	}
+	fmt.Println("Removing items:test")
 	for _, v := range t {
 		y.RemoveEntry(v)
 	}
