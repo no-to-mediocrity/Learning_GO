@@ -92,8 +92,6 @@ func (y *list) RemoveEntry(entry *entry) {
 	}
 	current := y.first
 	for current != nil {
-		fmt.Println(current)
-		fmt.Println(entry)
 		if current != entry {
 			current = current.next
 		} else {
