@@ -84,6 +84,7 @@ func (y *list) Range() {
 		fmt.Println("Next entry:", current.next)
 		current = current.next
 	}
+	fmt.Println("=================")
 }
 
 func (y *list) RemoveEntry(entry *entry) {
@@ -96,21 +97,19 @@ func (y *list) RemoveEntry(entry *entry) {
 		if current != entry {
 			current = current.next
 		} else {
-			current.data = ""
 			prev := current.prev
 			next := current.next
 			if current.next == nil {
-				prev := *current.prev
 				prev.next = nil
 			}
 			if current.prev == nil {
-				next := *current.next
 				next.prev = nil
 			}
 			if current.prev != nil && current.next != nil {
 				next.prev = prev
 				prev.next = next
 			}
+			current.Clear()
 			y.entries -= 1
 			current = current.next
 		}
@@ -121,6 +120,11 @@ func (y *list) RemoveEntry(entry *entry) {
 	if entry == y.last {
 		y.last = entry.prev
 	}
+	return
+}
+
+func (y *entry) Clear() {
+	y = &entry{}
 	return
 }
 
@@ -206,6 +210,13 @@ func main() {
 	}
 	fmt.Println("Removing items:test")
 	for _, v := range t {
+		y.RemoveEntry(v)
+	}
+	fmt.Println("Ranging list")
+	y.Range()
+	fmt.Println("Removing items:3")
+	b := y.GetItems("3")
+	for _, v := range b {
 		y.RemoveEntry(v)
 	}
 	fmt.Println("Ranging list")
