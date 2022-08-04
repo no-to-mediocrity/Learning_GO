@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	progressbar "github.com/schollz/progressbar/v3"
+	"github.com/schollz/progressbar/v3"
 	"io"
 	"log"
 	"os"
@@ -22,21 +22,11 @@ func main() {
 	limit := flag.Int64("limit", 0, "Limit")
 	overwrite := flag.Bool("overwrite", false, "Overwrite")
 	buffersize = flag.Int64("buffersize", 4096, "Buffer size")
+	var fsize int64
 	flag.Parse()
 	if *pathfrom == "" {
 		log.Println("Please provide the source file")
 		return
-	}
-	//Path suggestion
-	if *pathto == "" {
-		autopath, _ := PathSuggestion(*pathfrom)
-		autopathmsg := "Destination path not provided. Use the path" + autopath + "?"
-		c := askForConfirmation(autopathmsg)
-		if c {
-			*pathto = autopath
-		} else {
-			return
-		}
 	}
 	if *overwrite == false {
 		file, err := os.Open(*pathto)
@@ -57,23 +47,44 @@ func main() {
 		}
 	}(file)
 	if err != nil {
-		log.Println("Cannot open destination file:", *pathfrom)
+		log.Println("Error: os.Open, destination file:", *pathfrom, err)
+		//handle the error properly
 		return
 	}
-	var fsize int64
-	fi, _ := file.Stat()
-	fsize = fi.Size() - *offset
+
+	fi, err := file.Stat()
+	if err != nil {
+		log.Println("Error file.Stat, destination file:", *pathfrom, err)
+		return
+	}
+	if fsize <= 0 {
+		fsize = fi.Size() - *offset
+	} else {
+		log.Println("File without a size!", *pathfrom)
+		return
+	}
 	if *limit == 0 {
 		if *offset > fsize {
-			log.Printf("The offset (%v) is greater than the file size %v\n (%v)", *offset, *pathfrom, fsize)
+			log.Printf("The offset (%v) is greater than the file size (%v, %v)\n", *offset, *pathfrom, fsize)
 			return
 		}
 	} else {
-		if *limit > fsize{
-			log.Printf("The limit (%v) is greater than the number of bytes to copy %v\n", *limit, fsize)
+		if *limit > fsize {
+			log.Printf("The limit (%v) is greater than the number of bytes to copy (%v)\n", *limit, fsize)
 			return
 		}
 		fsize = *limit
+	}
+	//Path suggestion
+	if *pathto == "" {
+		autopath, _ := PathSuggestion(*pathfrom)
+		autopathmsg := "Destination path not provided. Use the path " + autopath + "?"
+		c := askForConfirmation(autopathmsg)
+		if c {
+			*pathto = autopath
+		} else {
+			return
+		}
 	}
 	copyerr := Filecopy(*pathfrom, *pathto, fsize, *offset)
 	if copyerr != nil {
@@ -149,7 +160,7 @@ func askForConfirmation(s string) bool {
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
-		fmt.Printf("%s [y/n]: ", s)
+		fmt.Printf("%s \n[y/n]: ", s)
 
 		response, err := reader.ReadString('\n')
 		if err != nil {
@@ -175,16 +186,13 @@ func PathSuggestion(pathfrom string) (string, error) {
 	for {
 		autopath = dir + file + "(" + strconv.Itoa(copycount) + ")" + ext
 		file, err := os.Open(autopath)
-		defer func(file *os.File) error {
-			err := file.Close()
-			if err != nil {
-				return err
-			}
-			return err
-		}(file)
 		if err == nil {
 			copycount++
 		} else {
+			err := file.Close()
+			if err != nil {
+				return "", err
+			}
 			break
 		}
 	}
