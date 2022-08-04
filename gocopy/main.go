@@ -186,13 +186,16 @@ func PathSuggestion(pathfrom string) (string, error) {
 	for {
 		autopath = dir + file + "(" + strconv.Itoa(copycount) + ")" + ext
 		file, err := os.Open(autopath)
+		defer func(file *os.File) error {
+			err := file.Close()
+			if err != nil {
+				return err
+			}
+			return err
+		}(file)
 		if err == nil {
 			copycount++
 		} else {
-			err := file.Close()
-			if err != nil {
-				return "", err
-			}
 			break
 		}
 	}
