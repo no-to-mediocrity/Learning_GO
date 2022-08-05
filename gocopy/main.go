@@ -25,31 +25,30 @@ func main() {
 	var fsize int64
 	flag.Parse()
 	if *pathfrom == "" {
-		log.Println("Please provide the source file")
-		return
+		log.Printf("Please provide the source file!\n")
+		os.Exit(132)
 	}
 	if *overwrite == false {
 		file, err := os.Open(*pathto)
 		if err == nil {
-			log.Println("Destination file already exists:", *pathto)
+			log.Printf("Destination file \"%v\" already exists!\n You can use flag -overwrite, provide a new destination address or omit flag -to to use path suggestion\n", *pathto)
 			err := file.Close()
 			if err != nil {
-				log.Println("OW: False, Error in file.Close():", err)
+				log.Printf("Error in file.Close(*pathto):%v, -overwrite false\n", err)
 			}
-			return
+			os.Exit(132)
 		}
 	}
 	file, err := os.Open(*pathfrom)
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-			log.Printf("OW: True, Error in defer file.Close():%v, %p\n", err, file)
+			log.Printf("Error in defer file.Close(*pathfrom):%v, %p, -overwrite true\n", err, file)
 		}
 	}(file)
 	if err != nil {
-		log.Println("Error: os.Open, destination file:", *pathfrom, err)
-		//handle the error properly
-		return
+		log.Printf("Error in os.Open(*pathfrom):%v, file:\"%v\"\n", err, *pathfrom)
+		os.Exit(132)
 	}
 
 	fi, err := file.Stat()
@@ -60,7 +59,8 @@ func main() {
 	if fsize <= 0 {
 		fsize = fi.Size() - *offset
 	} else {
-		log.Println("File without a size!", *pathfrom)
+		log.Println("File without a size/ folder!", *pathfrom)
+		//check how it copies folders, handle the error properly
 		return
 	}
 	if *limit == 0 {
