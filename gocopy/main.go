@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -26,7 +27,14 @@ func main() {
 	flag.Parse()
 	if *pathfrom == "" {
 		log.Printf("Please provide the source file!\n")
-		os.Exit(132)
+		switch env := runtime.GOOS; env {
+		case "windows":
+			os.Exit(10022)
+		case "linux":
+			os.Exit(22)
+		default:
+			os.Exit(22)
+		}
 	}
 	if *overwrite == false {
 		file, err := os.Open(*pathto)
@@ -36,25 +44,32 @@ func main() {
 			if err != nil {
 				log.Printf("Error in file.Close(*pathto):%v, -overwrite false\n", err)
 			}
-			os.Exit(132)
+			switch env := runtime.GOOS; env {
+			case "windows":
+				os.Exit(58)
+			case "linux":
+				os.Exit(17)
+			default:
+				os.Exit(17)
+			}
 		}
 	}
 	file, err := os.Open(*pathfrom)
-	defer func(file *os.File) {
+	defer func(file *os.File) error {
 		err := file.Close()
 		if err != nil {
 			log.Printf("Error in defer file.Close(*pathfrom):%v, %p, -overwrite true\n", err, file)
 		}
+		return err
 	}(file)
 	if err != nil {
 		log.Printf("Error in os.Open(*pathfrom):%v, file:\"%v\"\n", err, *pathfrom)
-		os.Exit(132)
+		os.Exit(1)
 	}
-
 	fi, err := file.Stat()
 	if err != nil {
 		log.Println("Error file.Stat, destination file:", *pathfrom, err)
-		return
+		os.Exit(1)
 	}
 	if fsize <= 0 {
 		fsize = fi.Size() - *offset
@@ -104,8 +119,12 @@ func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 	if err != nil {
 		return err
 	}
-	defer source.Close()
-
+	defer func(source *os.File) {
+		err := source.Close()
+		if err != nil {
+			log.Printf("Filecopy(): Error in defer file.Close(pathfrom):%v, parameters: pathfrom:%v, pathto:%v, limit:%v, offset %v", err, pathfrom, pathto, limit, offset)
+		}
+	}(source)
 	destination, err := os.Create(pathto)
 	if err != nil {
 		return err
