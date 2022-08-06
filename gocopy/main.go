@@ -7,6 +7,7 @@ import (
 	"github.com/schollz/progressbar/v3"
 	"io"
 	"log"
+	"math"
 	"os"
 	"path"
 	"runtime"
@@ -35,6 +36,11 @@ func main() {
 		default:
 			os.Exit(22)
 		}
+	}
+	sourceFileStat, err := os.Stat(*pathfrom)
+	if !sourceFileStat.Mode().IsRegular() {
+		log.Printf("%s is not a regular file. NB: Operations with folders are not supported.\n", *pathfrom)
+		os.Exit(1)
 	}
 	if *overwrite == false {
 		file, err := os.Open(*pathto)
@@ -71,13 +77,7 @@ func main() {
 		log.Println("Error file.Stat, destination file:", *pathfrom, err)
 		os.Exit(1)
 	}
-	if fsize <= 0 {
-		fsize = fi.Size() - *offset
-	} else {
-		log.Println("File without a size/ folder!", *pathfrom)
-		//check how it copies folders, handle the error properly
-		return
-	}
+	fsize = fi.Size() - *offset
 	if *limit == 0 {
 		if *offset > fsize {
 			log.Printf("The offset (%v) is greater than the file size (%v, %v)\n", *offset, *pathfrom, fsize)
@@ -85,7 +85,9 @@ func main() {
 		}
 	} else {
 		if *limit > fsize {
-			log.Printf("The limit (%v) is greater than the number of bytes to copy (%v)\n", *limit, fsize)
+			limit1, limit2 := humanizeBytes(float64(*limit))
+			fsize1, fsize2 := humanizeBytes(float64(fsize))
+			log.Printf("The limit (%v%v) is greater than the number of bytes to copy (%v%v)\n", limit1, limit2, fsize1, fsize2)
 			return
 		}
 		fsize = *limit
@@ -110,11 +112,6 @@ func main() {
 }
 
 func Filecopy(pathfrom, pathto string, limit, offset int64) error {
-	sourceFileStat, err := os.Stat(pathfrom)
-	if !sourceFileStat.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file", pathfrom)
-	}
-
 	source, err := os.Open(pathfrom)
 	if err != nil {
 		return err
@@ -219,4 +216,27 @@ func PathSuggestion(pathfrom string) (string, error) {
 		}
 	}
 	return autopath, nil
+}
+
+//taken from "github.com/schollz/progressbar/v3" as it was a private function
+//all credits to schollz
+func humanizeBytes(s float64) (string, string) {
+	sizes := []string{" B", " kB", " MB", " GB", " TB", " PB", " EB"}
+	base := 1024.0
+	if s < 10 {
+		return fmt.Sprintf("%2.0f", s), "B"
+	}
+	e := math.Floor(logn(float64(s), base))
+	suffix := sizes[int(e)]
+	val := math.Floor(float64(s)/math.Pow(base, e)*10+0.5) / 10
+	f := "%.0f"
+	if val < 10 {
+		f = "%.1f"
+	}
+
+	return fmt.Sprintf(f, val), suffix
+}
+
+func logn(n, b float64) float64 {
+	return math.Log(n) / math.Log(b)
 }
