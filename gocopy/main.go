@@ -196,7 +196,7 @@ func askForConfirmation(s string) bool {
 func PathSuggestion(pathfrom string) (string, error) {
 	dir, file := path.Split(pathfrom)
 	ext := path.Ext(file)
-	file = strings.TrimRight(file, ext)
+	file = file[0 : len(file)-len(ext)]
 	copycount := 2
 	var autopath string
 	for {
