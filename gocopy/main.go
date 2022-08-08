@@ -84,7 +84,7 @@ func main() {
 		fsize1, fsize2 := humanizeBytes(float64(fi.Size()))
 		log.Printf("The offset (%v%v) is greater than the file size (%v%v)\n", offset1, offset2, fsize1, fsize2)
 		IncorrectInput()
-	case *limit > 0 && *limit > fsize:
+	case *limit > fsize:
 		limit1, limit2 := humanizeBytes(float64(*limit))
 		fsize1, fsize2 := humanizeBytes(float64(fi.Size()))
 		log.Printf("The limit (%v%v) is greater than the number of bytes to copy (%v%v)\n", limit1, limit2, fsize1, fsize2)
