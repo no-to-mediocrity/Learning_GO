@@ -19,6 +19,7 @@ import (
 var buffersize *int64 // Global variable so we don't have to pass it to function
 
 func main() {
+	var badinput bool
 	pathfrom := flag.String("from", "", "Location of a file")
 	pathto := flag.String("to", "", "Copy destination")
 	offset := flag.Int64("offset", 0, "Offset")
@@ -29,11 +30,11 @@ func main() {
 	flag.Parse()
 	if *pathfrom == "" {
 		log.Printf("Please provide the source file!\n")
-		IncorrectInput()
+		badinput = true
 	}
 	sourceFileStat, err := os.Stat(*pathfrom)
 	if !sourceFileStat.Mode().IsRegular() {
-		log.Printf("%s is not a regular file. NB: Operations with folders are not supported.\n", *pathfrom)
+		log.Printf("%v is not a regular file. NB: Operations with folders are not supported.\n", *pathfrom)
 		os.Exit(1)
 	}
 	if *overwrite == false {
@@ -58,7 +59,7 @@ func main() {
 	defer func(file *os.File) error {
 		err := file.Close()
 		if err != nil {
-			log.Printf("Error in defer file.Close(*pathfrom):%v, %p, -overwrite true\n", err, file)
+			log.Printf("Error in defer file.Close(*pathfrom):%v, %v, -overwrite true\n", err, file)
 		}
 		return err
 	}(file)
@@ -68,27 +69,28 @@ func main() {
 	}
 	fi, err := file.Stat()
 	if err != nil {
-		log.Println("Error file.Stat, destination file:", *pathfrom, err)
+		log.Println("Error file.Stat, destination file:\"%v\", %v\n", *pathfrom, err)
 		os.Exit(1)
 	}
-	if *offset < 0 {
+
+	fsize = fi.Size() - *offset
+	switch {
+	case *limit < 0:
 		log.Printf("The limit (%v) cannot be less than zero\n", *limit)
 		IncorrectInput()
+	case *offset < 0:
+		log.Printf("The offset (%v) cannot be less than zero\n", *offset)
+		IncorrectInput()
+	case *limit == 0 && *offset > fsize:
+		log.Printf("The offset (%v) is greater than the file size (%v, %v)\n", *offset, *pathfrom, fsize)
+		IncorrectInput()
+	case *limit > 0 && *limit > fsize:
+		limit1, limit2 := humanizeBytes(float64(*limit))
+		fsize1, fsize2 := humanizeBytes(float64(fsize))
+		log.Printf("The limit (%v%v) is greater than the number of bytes to copy (%v%v)\n", limit1, limit2, fsize1, fsize2)
+		IncorrectInput()
 	}
-	fsize = fi.Size() - *offset
-	if *limit == 0 {
-		if *offset > fsize {
-			log.Printf("The offset (%v) is greater than the file size (%v, %v)\n", *offset, *pathfrom, fsize)
-			IncorrectInput()
-
-		}
-	} else {
-		if *limit > fsize {
-			limit1, limit2 := humanizeBytes(float64(*limit))
-			fsize1, fsize2 := humanizeBytes(float64(fsize))
-			log.Printf("The limit (%v%v) is greater than the number of bytes to copy (%v%v)\n", limit1, limit2, fsize1, fsize2)
-			IncorrectInput()
-		}
+	if *limit > 0 {
 		fsize = *limit
 	}
 	//Path suggestion
