@@ -19,7 +19,6 @@ import (
 var buffersize *int64 // Global variable so we don't have to pass it to function
 
 func main() {
-	var badinput bool
 	pathfrom := flag.String("from", "", "Location of a file")
 	pathto := flag.String("to", "", "Copy destination")
 	offset := flag.Int64("offset", 0, "Offset")
@@ -30,7 +29,7 @@ func main() {
 	flag.Parse()
 	if *pathfrom == "" {
 		log.Printf("Please provide the source file!\n")
-		badinput = true
+		IncorrectInput()
 	}
 	sourceFileStat, err := os.Stat(*pathfrom)
 	if !sourceFileStat.Mode().IsRegular() {
