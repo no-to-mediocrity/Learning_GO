@@ -28,8 +28,17 @@ func main() {
 	var fsize int64
 	flag.Parse()
 	if *pathfrom == "" {
-		log.Printf("Please provide the source file!\n")
+		log.Printf("Please provide the source file\n")
 		IncorrectInput()
+	}
+	file, err := os.Open(*pathfrom)
+	if err != nil {
+		log.Printf("Source file \"%v\" does not exist\n", *pathfrom)
+		os.Exit(2)
+	}
+	err_ := file.Close()
+	if err_ != nil {
+		log.Printf("Error in file.Close(*pathto):%v, -overwrite false\n", err)
 	}
 	sourceFileStat, err := os.Stat(*pathfrom)
 	if !sourceFileStat.Mode().IsRegular() {
@@ -54,7 +63,7 @@ func main() {
 			}
 		}
 	}
-	file, err := os.Open(*pathfrom)
+	file, err2 := os.Open(*pathfrom)
 	defer func(file *os.File) error {
 		err := file.Close()
 		if err != nil {
@@ -62,13 +71,13 @@ func main() {
 		}
 		return err
 	}(file)
-	if err != nil {
+	if err2 != nil {
 		log.Printf("Error in os.Open(*pathfrom):%v, file:\"%v\"\n", err, *pathfrom)
 		os.Exit(1)
 	}
 	fi, err := file.Stat()
 	if err != nil {
-		log.Println("Error file.Stat, destination file:\"%v\", %v\n", *pathfrom, err)
+		log.Printf("Error file.Stat, destination file:\"%v\", %v\n", *pathfrom, err)
 		os.Exit(1)
 	}
 	fsize = fi.Size() - *offset
