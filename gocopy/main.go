@@ -28,14 +28,7 @@ func main() {
 	flag.Parse()
 	if *pathfrom == "" {
 		log.Printf("Please provide the source file!\n")
-		switch env := runtime.GOOS; env {
-		case "windows":
-			os.Exit(10022)
-		case "linux":
-			os.Exit(22)
-		default:
-			os.Exit(22)
-		}
+		IncorrectInput()
 	}
 	sourceFileStat, err := os.Stat(*pathfrom)
 	if !sourceFileStat.Mode().IsRegular() {
@@ -77,18 +70,23 @@ func main() {
 		log.Println("Error file.Stat, destination file:", *pathfrom, err)
 		os.Exit(1)
 	}
+	if *offset < 0 {
+	log.Printf("The limit (%v) cannot be less than zero\n", *limit)
+	IncorrectInput()
+	}
 	fsize = fi.Size() - *offset
 	if *limit == 0 {
 		if *offset > fsize {
 			log.Printf("The offset (%v) is greater than the file size (%v, %v)\n", *offset, *pathfrom, fsize)
-			return
+			IncorrectInput()
+			
 		}
 	} else {
 		if *limit > fsize {
 			limit1, limit2 := humanizeBytes(float64(*limit))
 			fsize1, fsize2 := humanizeBytes(float64(fsize))
 			log.Printf("The limit (%v%v) is greater than the number of bytes to copy (%v%v)\n", limit1, limit2, fsize1, fsize2)
-			return
+			IncorrectInput()
 		}
 		fsize = *limit
 	}
@@ -100,15 +98,13 @@ func main() {
 		if c {
 			*pathto = autopath
 		} else {
-			return
+			os.Exit(0)
 		}
 	}
 	copyerr := Filecopy(*pathfrom, *pathto, fsize, *offset)
 	if copyerr != nil {
 		log.Printf("%v", copyerr)
-		return
 	}
-
 }
 
 func Filecopy(pathfrom, pathto string, limit, offset int64) error {
@@ -239,4 +235,15 @@ func humanizeBytes(s float64) (string, string) {
 
 func logn(n, b float64) float64 {
 	return math.Log(n) / math.Log(b)
+}
+
+func IncorrectInput(){
+	switch env := runtime.GOOS; env {
+	case "windows":
+		os.Exit(10022)
+	case "linux":
+		os.Exit(22)
+	default:
+		os.Exit(22)
+	}
 }
