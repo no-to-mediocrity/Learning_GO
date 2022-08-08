@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/schollz/progressbar/v3"
 	"io"
 	"log"
 	"math"
@@ -13,6 +12,8 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/schollz/progressbar/v3"
 )
 
 var buffersize *int64 // Global variable so we don't have to pass it to function
@@ -71,15 +72,15 @@ func main() {
 		os.Exit(1)
 	}
 	if *offset < 0 {
-	log.Printf("The limit (%v) cannot be less than zero\n", *limit)
-	IncorrectInput()
+		log.Printf("The limit (%v) cannot be less than zero\n", *limit)
+		IncorrectInput()
 	}
 	fsize = fi.Size() - *offset
 	if *limit == 0 {
 		if *offset > fsize {
 			log.Printf("The offset (%v) is greater than the file size (%v, %v)\n", *offset, *pathfrom, fsize)
 			IncorrectInput()
-			
+
 		}
 	} else {
 		if *limit > fsize {
@@ -115,7 +116,7 @@ func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 	defer func(source *os.File) {
 		err := source.Close()
 		if err != nil {
-			log.Printf("Filecopy(): Error in defer file.Close(pathfrom):%v, parameters: pathfrom:%v, pathto:%v, limit:%v, offset %v", err, pathfrom, pathto, limit, offset)
+			log.Printf("Filecopy(): Error in defer file.Close(pathfrom):%v, parameters: pathfrom:%v, pathto:%v, limit:%v, offset %v\n", err, pathfrom, pathto, limit, offset)
 		}
 	}(source)
 	destination, err := os.Create(pathto)
@@ -165,6 +166,7 @@ func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 		}
 		iterations++
 	}
+	fmt.Printf("\n")
 	return err
 }
 
@@ -237,7 +239,7 @@ func logn(n, b float64) float64 {
 	return math.Log(n) / math.Log(b)
 }
 
-func IncorrectInput(){
+func IncorrectInput() {
 	switch env := runtime.GOOS; env {
 	case "windows":
 		os.Exit(10022)
