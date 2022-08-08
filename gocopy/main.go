@@ -71,7 +71,6 @@ func main() {
 		log.Println("Error file.Stat, destination file:\"%v\", %v\n", *pathfrom, err)
 		os.Exit(1)
 	}
-
 	fsize = fi.Size() - *offset
 	switch {
 	case *limit < 0:
@@ -80,16 +79,17 @@ func main() {
 	case *offset < 0:
 		log.Printf("The offset (%v) cannot be less than zero\n", *offset)
 		IncorrectInput()
-	case *limit == 0 && *offset > fsize:
-		log.Printf("The offset (%v) is greater than the file size (%v, %v)\n", *offset, *pathfrom, fsize)
+	case *offset > fi.Size():
+		offset1, offset2 := humanizeBytes(float64(*offset))
+		fsize1, fsize2 := humanizeBytes(float64(fi.Size()))
+		log.Printf("The offset (%v%v) is greater than the file size (%v%v)\n", offset1, offset2, fsize1, fsize2)
 		IncorrectInput()
 	case *limit > 0 && *limit > fsize:
 		limit1, limit2 := humanizeBytes(float64(*limit))
-		fsize1, fsize2 := humanizeBytes(float64(fsize))
+		fsize1, fsize2 := humanizeBytes(float64(fi.Size()))
 		log.Printf("The limit (%v%v) is greater than the number of bytes to copy (%v%v)\n", limit1, limit2, fsize1, fsize2)
 		IncorrectInput()
-	}
-	if *limit > 0 {
+	case *limit > 0:
 		fsize = *limit
 	}
 	//Path suggestion
