@@ -1,30 +1,29 @@
 package main
 
 import (
-	"github.com/brianvoe/gofakeit/v6"
-	"github.com/spf13/afero"
-	//"github.com/stretchr/testify/assert"
+	"fmt"
 	"os"
 	"testing"
+	"testing/fstest"
 )
 
 func TestFilecopy(t *testing.T) {
-	//assert := assert.New(t)
-	//fmt.Printf(assert)
-	var g string
-	for i := 0; i < 1000; i++ {
-		g += gofakeit.LoremIpsumParagraph(1, 10, 20, " ")
+	os.Args = append(os.Args, "from \"t/hello.txt\"")
+	os.Args = append(os.Args, "offset 100")
+	os.Args = append(os.Args, "limit 1000")
+	m := fstest.MapFS{
+		"t/hello.txt": {
+			Data: []byte("hello, world"),
+		},
+		"t/hello(2).txt": {
+			Data: []byte(""),
+		},
 	}
-	var appFS = afero.NewMemMapFs()
-	appFS.MkdirAll("/src/a", 0755)
-	afero.WriteFile(appFS, "src/a/b", []byte(g), 0644)
-	os.Args = append(os.Args, "-from \"/src/a/b\"")
-	os.Args = append(os.Args, "-offset 100")
-	os.Args = append(os.Args, "-limit 1000")
+	for k, v := range m {
+		fmt.Printf("%s -> %s\n", k, v)
+	}
 	main()
-	//Filecopy("src/a/b", "src/a/c", 1000, 0)
-	_, err := appFS.Stat("src/a/c")
-	if os.IsNotExist(err) {
-		t.Errorf("file \"%s\" does not exist.\n", "src/a/c")
+	for k, v := range m {
+		fmt.Printf("%s -> %s\n", k, v)
 	}
 }
