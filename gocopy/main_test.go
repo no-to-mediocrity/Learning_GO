@@ -1,29 +1,21 @@
 package main
 
-import (
-	"fmt"
-	"os"
-	"testing"
-	"testing/fstest"
-)
+func Test() TestCopyFunc(t *testing.T) {
+	dir, err := os.MkdirTemp("", "gotest")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer os.RemoveAll(dir) // clean up
 
-func TestFilecopy(t *testing.T) {
-	os.Args = append(os.Args, "from \"t/hello.txt\"")
-	os.Args = append(os.Args, "offset 100")
-	os.Args = append(os.Args, "limit 1000")
-	m := fstest.MapFS{
-		"t/hello.txt": {
-			Data: []byte("hello, world"),
-		},
-		"t/hello(2).txt": {
-			Data: []byte(""),
-		},
+	file := filepath.Join(dir, "test.txt")
+
+	
+	if err := os.WriteFile(file, []byte("Hello world! Hello world!"), 0666); err != nil {
+		log.Fatal(err)
 	}
-	for k, v := range m {
-		fmt.Printf("%s -> %s\n", k, v)
-	}
-	main()
-	for k, v := range m {
-		fmt.Printf("%s -> %s\n", k, v)
-	}
+ 	//Arrange
+
+	//Act
+
+	//Assert
 }
