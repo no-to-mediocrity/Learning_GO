@@ -38,7 +38,7 @@ func main() {
 	}
 	err_ := file.Close()
 	if err_ != nil {
-		log.Printf("Error in file.Close(*pathto):%v, -overwrite false\n", err)
+		log.Printf("Error in file.Close(*pathto):%v", err)
 	}
 	sourceFileStat, err := os.Stat(*pathfrom)
 	if !sourceFileStat.Mode().IsRegular() {
