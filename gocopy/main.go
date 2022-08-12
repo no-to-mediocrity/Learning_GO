@@ -118,7 +118,13 @@ func main() {
 	}
 }
 
-func Filecopy(pathfrom, pathto string, limit, offset int64) error {
+var buffersize_ int64
+	//for test to work
+	if buffersize != nil {
+		buffersize_ = *buffersize
+	} else {
+		buffersize_ = int64(4096)
+	}
 	source, err := os.Open(pathfrom)
 	if err != nil {
 		return err
@@ -138,10 +144,10 @@ func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 	if err != nil {
 		panic(err)
 	}
-	buf := make([]byte, *buffersize)
-	bar := progressbar.NewOptions(int(limit+offset), progressbar.OptionShowBytes(true), progressbar.OptionSetDescription("Copying in progress:"))
-	maxIterations := (offset + limit) / *buffersize
-	offsetIterations := offset / *buffersize
+	buf := make([]byte, buffersize_)
+	bar := progressbar.NewOptions(int(limit), progressbar.OptionShowBytes(true), progressbar.OptionSetDescription("Copying in progress:"))
+	maxIterations := (offset + limit) / buffersize_
+	offsetIterations := offset / buffersize_
 	var iterations int64
 	for {
 		if iterations > maxIterations {
@@ -149,7 +155,7 @@ func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 		}
 		if iterations == maxIterations {
 			//Changing the buffer size to trim the file to the limit set by user
-			lastbuffer := (offset + limit) - (maxIterations * *buffersize)
+			lastbuffer := (offset + limit) - (maxIterations * buffersize_)
 			buf = make([]byte, lastbuffer)
 		}
 		n, err := source.Read(buf)
@@ -163,7 +169,7 @@ func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 		}
 		if offset > 0 && iterations == offsetIterations {
 			//Getting the head of the file according to the user-provided offset
-			pos := offset - offsetIterations**buffersize
+			pos := offset - offsetIterations*buffersize_
 			if _, err := destination.Write(buf[pos:n]); err != nil {
 				return err
 			}
