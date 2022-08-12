@@ -118,6 +118,7 @@ func main() {
 	}
 }
 
+func Filecopy(pathfrom, pathto string, limit, offset int64) error {
 var buffersize_ int64
 	//for test to work
 	if buffersize != nil {
