@@ -45,7 +45,7 @@ func main() {
 		log.Printf("%v is not a regular file. NB: Operations with folders are not supported.\n", *pathfrom)
 		os.Exit(1)
 	}
-	if *overwrite == false {
+	if !*overwrite {
 		file, err := os.Open(*pathto)
 		if err == nil {
 			log.Printf("Destination file \"%v\" already exists!\n You can use flag -overwrite, provide a new destination address or omit flag -to to use path suggestion\n", *pathto)
@@ -119,7 +119,7 @@ func main() {
 }
 
 func Filecopy(pathfrom, pathto string, limit, offset int64) error {
-var buffersize_ int64
+	var buffersize_ int64
 	//for test to work
 	if buffersize != nil {
 		buffersize_ = *buffersize
@@ -146,10 +146,10 @@ var buffersize_ int64
 		panic(err)
 	}
 	buf := make([]byte, buffersize_)
-	bar := progressbar.NewOptions(int(limit), progressbar.OptionShowBytes(true), progressbar.OptionSetDescription("Copying in progress:"))
 	maxIterations := (offset + limit) / buffersize_
 	offsetIterations := offset / buffersize_
 	var iterations int64
+	bar := progressbar.NewOptions(int(maxIterations*buffersize_), progressbar.OptionShowBytes(true), progressbar.OptionSetDescription("Copying in progress:"))
 	for {
 		if iterations > maxIterations {
 			break
@@ -233,8 +233,8 @@ func PathSuggestion(pathfrom string) (string, error) {
 	return autopath, nil
 }
 
-//taken from "github.com/schollz/progressbar/v3" as it was a private function
-//all credits to schollz
+// taken from "github.com/schollz/progressbar/v3" as it was a private function
+// all credits to schollz
 func humanizeBytes(s float64) (string, string) {
 	sizes := []string{" B", " kB", " MB", " GB", " TB", " PB", " EB"}
 	base := 1024.0
