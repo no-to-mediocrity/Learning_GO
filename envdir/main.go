@@ -5,7 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	start "learning_go/goenv/start"
+	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -14,13 +17,32 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func init() {
-	return
-}
-
 func main() {
-	myEnv, err := ReadDir("")
-	fmt.Println(myEnv, err)
+	dirpath, cmd_, args := start.Args()
+	myEnv, err := ReadDir(dirpath)
+	if err != nil {
+		log.Printf("Error:%v\n", err)
+	}
+	//fmt.Println(myEnv, err, cmd_, args)
+	for key, value := range myEnv {
+		err := os.Setenv(key, value)
+		if err != nil {
+			log.Printf("Error:%v\n", err)
+		}
+	}
+	var args_ string
+	if len(args) > 3 {
+		for _, value := range args {
+			args_ = value + " " + args_
+		}
+	}
+	cmd := exec.Command(cmd_, args_)
+	stdoutStderr, err_ := cmd.CombinedOutput()
+	if err_ != nil {
+		log.Fatal(err_)
+	}
+	fmt.Printf("%s", stdoutStderr)
+
 }
 
 func ReadDir(dir string) (map[string]string, error) {
@@ -34,15 +56,19 @@ func ReadDir(dir string) (map[string]string, error) {
 	}
 	m, err := LoopDir(dir)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 	if m == nil {
-		fmt.Println("No configurations files have been found")
-		return nil, errors.New("No configurations files have been found")
+		fmt.Println("No configuration files have been found")
+		return nil, errors.New("no configuration files have been found")
 	}
-	fmt.Println("The following configurations have been found:")
-	g := ChooseEnv(m)
 	var myEnv map[string]string
+	if len(m) == 1 {
+		myEnv, err = godotenv.Read(m[0])
+		return myEnv, err
+	}
+	fmt.Println("Multiple configuration files have been found:")
+	g := ChooseEnv(m)
 	if g == "all" {
 		for _, t := range m {
 			myEnv, err = godotenv.Read(t)
@@ -78,7 +104,7 @@ func LoopDir(dir string) ([]string, error) {
 }
 
 func ChooseEnv(x []string) string {
-	i := 1
+	var i int = 1
 	for _, k := range x {
 		fmt.Printf("%v) %v\n", i, filepath.Base(k))
 		i++
@@ -90,37 +116,10 @@ func ChooseEnv(x []string) string {
 	if err != nil {
 		if strings.ToLower(input.Text()) == "all" {
 			return "all"
+		} else {
+			fmt.Printf("%v is not a number\n", input.Text())
+			os.Exit(2)
 		}
-		fmt.Printf("%v is not a number", input.Text())
-		ChooseEnv(x)
 	}
 	return x[m-1]
 }
-
-/*
-Домашнее задание
-Утилита envdir
-Цель: Реализовать утилиту envdir на Go.
- envdir  - runs another program with environment modified according to files in a specified
-       directory.
-
-Эта утилита позволяет запускать программы получая переменные окружения из определенной директории. См man envdir Пример go-envdir /path/to/evndir command arg1 arg2
-Завести в репозитории отдельный пакет (модуль) для этого ДЗ
-Реализовать функцию вида  , которая сканирует указанный каталог и возвращает все переменные окружения, определенные в нем.
-Реализовать функцию вида RunCmd(cmd []string, env map[string]string) int , которая запускает программу с аргументами (cmd) c переопределнным окружением.
-Реализовать функцию main, анализирующую аргументы командной строки и вызывающую ReadDir и RunCmd
-
-Протестировать утилиту.
-Тестировать можно утилиту целиком с помощью shell скрипта, а можно написать unit тесты на отдельные функции.
-Критерии оценки: Стандартные потоки ввода/вывода/ошибок должны пробрасываться в вызываемую программу.
-Код выхода утилиты envdir должен совпадать с кодом выхода программы.
-Код должен проходить проверки go vet и golint
-У преподавателя должна быть возможность скачать и установить пакет с помощью go get / go install
-
- См man envdir Пример go-envdir /path/to/evndir command arg1 arg2
-Завести в репозитории отдельный пакет (модуль) для этого ДЗ
-Реализовать функцию вида ReadDir(dir string) (map[string]string, error), которая сканирует указанный каталог и возвращает все переменные окружения, определенные в нем.
-Реализовать функцию вида RunCmd(cmd []string, env map[string]string) int , которая запускает программу с аргументами (cmd) c переопределнным окружением.
-Реализовать функцию main, анализирующую аргументы командной строки и вызывающую ReadDir и RunCmd
-*/
-
